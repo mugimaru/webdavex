@@ -7,6 +7,8 @@ defmodule Webdavex.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
+      description: "hackney based WebDAV client.",
+      package: package(),
       deps: deps()
     ]
   end
@@ -26,6 +28,17 @@ defmodule Webdavex.MixProject do
       {:credo, "~> 0.9.2", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
       {:bypass, "~> 0.8", only: :test}
+    ]
+  end
+
+  defp package do
+    [
+      files: ["lib", "mix.exs", "README.md", "LICENSE", ".credo.exs"],
+      maintainers: ["mugimaru73"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/mugimaru73/webdavex"
+      }
     ]
   end
 end
