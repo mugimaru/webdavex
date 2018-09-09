@@ -39,17 +39,6 @@ defmodule WebdavexTest do
     end
   end
 
-  defp download_file(conn) do
-    {_, ct} = Enum.find(conn.req_headers, fn {k, _v} -> k == "content-type" end)
-    assert [ct, ct_params] = String.split(ct, "; ")
-    assert [type, subtype] = String.split(ct, "/")
-
-    assert [_, boundary] = String.split(ct_params, "=")
-
-    {:ok, %{"file" => upload}, _conn} = Plug.Parsers.MULTIPART.parse(conn, type, subtype, %{"boundary" => boundary}, [])
-    File.read!(upload.path)
-  end
-
   defp assert_adds_default_header(conn) do
     %{headers: [{k, v}]} = Klient.config()
     assert_header(conn.req_headers, k, v)
@@ -72,7 +61,9 @@ defmodule WebdavexTest do
     test "sends PUT request for a new file", %{bypass: bypass} do
       Bypass.expect_once(bypass, "PUT", "/dav/images/img.png", fn conn ->
         assert_adds_default_header(conn)
-        assert @image_content == download_file(conn)
+
+        {:ok, body, conn} = Conn.read_body(conn)
+        assert @image_content == body
 
         Conn.resp(conn, 201, "")
       end)
@@ -80,10 +71,16 @@ defmodule WebdavexTest do
       assert {:ok, :created} == Klient.put("images/img.png", {:file, @image_path})
     end
 
+    test "returns an error if file does not exist" do
+      assert {:error, :enoent} == Klient.put("images/img.png", {:file, Path.absname("foobar.png")})
+    end
+
     test "sends PUT request for existing file", %{bypass: bypass} do
       Bypass.expect_once(bypass, "PUT", "/dav/images/img.png", fn conn ->
         assert_adds_default_header(conn)
-        assert @image_content == download_file(conn)
+
+        {:ok, body, conn} = Conn.read_body(conn)
+        assert @image_content == body
 
         Conn.resp(conn, 204, "")
       end)
@@ -94,6 +91,10 @@ defmodule WebdavexTest do
     test "sends PUT request for binary content", %{bypass: bypass} do
       Bypass.expect_once(bypass, "PUT", "/dav/images/img.png", fn conn ->
         assert_adds_default_header(conn)
+
+        {:ok, body, conn} = Conn.read_body(conn)
+        assert @image_content == body
+
         Conn.resp(conn, 204, "")
       end)
 

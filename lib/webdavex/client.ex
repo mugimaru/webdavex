@@ -203,19 +203,19 @@ defmodule Webdavex.Client do
     end)
   end
 
-  defp do_put(config, path, {:binary, data}) do
-    with {:ok, ref} <- request(:put, path, [], :stream, config),
-         :ok <- :hackney.send_body(ref, data) do
-      {:ok, ref}
-    else
+  defp do_put(config, path, {:file, file_path}) do
+    case File.read(file_path) do
+      {:ok, content} ->
+        do_put(config, path, {:binary, content})
+
       error ->
-        wrap_error(error)
+        error
     end
   end
 
-  defp do_put(config, path, {:file, file_path}) do
-    with {:ok, ref} <- request(:put, path, [], :stream_multipart, config),
-         :ok <- :hackney.send_multipart_body(ref, {:file, file_path}) do
+  defp do_put(config, path, {:binary, data}) do
+    with {:ok, ref} <- request(:put, path, [], :stream, config),
+         :ok <- :hackney.send_body(ref, data) do
       {:ok, ref}
     else
       error ->
