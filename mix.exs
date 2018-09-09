@@ -9,7 +9,9 @@ defmodule Webdavex.MixProject do
       start_permanent: Mix.env() == :prod,
       description: "hackney based WebDAV client.",
       package: package(),
-      deps: deps()
+      deps: deps(),
+      source_url: "https://github.com/mugimaru73/webdavex",
+      docs: docs()
     ]
   end
 
@@ -39,6 +41,13 @@ defmodule Webdavex.MixProject do
       links: %{
         "GitHub" => "https://github.com/mugimaru73/webdavex"
       }
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: ["README.md"]
     ]
   end
 end

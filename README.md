@@ -29,4 +29,4 @@ end
 MyApp.WebdavClient.put("image.png", {:file, Path.absname("files/image.png")})
 ```
 
-Refer to [https://hexdocs.pm/webdavex](https://hexdocs.pm/webdavex) for API docs.
+Refer to [Webdavex.Client](https://hexdocs.pm/webdavex/Webdavex.Client.html) API docs for more details.
