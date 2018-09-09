@@ -40,6 +40,9 @@ defmodule Webdavex do
       @doc "Returns webdav client configuration."
       def config, do: @config
 
+      @spec head(path :: String.t()) :: {:ok, list({String.t(), String.t()})} | {:error, atom}
+      def head(path), do: Client.head(config(), path)
+
       @spec get(path :: String.t()) :: {:ok, binary} | {:error, atom}
       def get(path), do: Client.get(config(), path)
 

@@ -20,6 +20,32 @@ defmodule Webdavex.Client do
   alias Webdavex.Config
   require Logger
 
+  @spec head(Config.t(), path :: String.t()) :: {:ok, list({String.t(), String.t()})} | {:error, atom}
+  @doc """
+  Issues a HEAD request to webdav server.
+  Returns response headers if target file exists.
+  It migth be useful to check content type and size of file (Content-Type and Content-Length headers respectively).
+
+  ### Examples
+
+      MyClient.head("foo.jpg")
+      {:ok, [
+        {"Date", "Sun, 09 Sep 2018 18:13:00 GMT"},
+        {"Content-Type", "image/jpeg"},
+        {"Content-Length", "870883"},
+        {"Last-Modified", "Sat, 08 Sep 2018 18:00:51 GMT"},
+      ]}
+  """
+  def head(%Config{} = config, path) do
+    case request(:head, path, [], "", config) do
+      {:ok, 200, headers} ->
+        {:ok, headers}
+
+      error ->
+        wrap_error(error)
+    end
+  end
+
   @spec get(Config.t(), path :: String.t()) :: {:ok, binary} | {:error, atom}
   @doc """
   Gets a file from webdav server.
@@ -261,6 +287,7 @@ defmodule Webdavex.Client do
 
   defp destination_header(base_url, url), do: {"Destination", full_url(base_url, url)}
 
+  defp wrap_error({:ok, status, _headers}), do: {:error, String.to_atom("http_#{status}")}
   defp wrap_error({:ok, status, _headers, _ref}), do: {:error, String.to_atom("http_#{status}")}
   defp wrap_error({:error, reason}), do: {:error, reason}
 end

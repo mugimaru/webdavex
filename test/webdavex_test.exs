@@ -103,6 +103,21 @@ defmodule WebdavexTest do
     end
   end
 
+  describe "head/1" do
+    test "returns response headers", %{bypass: bypass} do
+      Bypass.expect_once(bypass, "HEAD", "/dav/images/img.png", fn conn ->
+        assert_adds_default_header(conn)
+
+        conn
+        |> Conn.put_resp_header("Foo-Bar", "baz")
+        |> Conn.resp(200, "")
+      end)
+
+      assert {:ok, headers} = Klient.head("images/img.png")
+      assert {"Foo-Bar", "baz"} == Enum.find(headers, fn {k, _v} -> k == "Foo-Bar" end)
+    end
+  end
+
   describe "get/1" do
     test "loads file content", %{bypass: bypass} do
       Bypass.expect_once(bypass, "GET", "/dav/images/img.png", fn conn ->
