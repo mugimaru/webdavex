@@ -14,7 +14,7 @@ defmodule Webdavex.Client do
       MyClient.get("image.png")
 
   instead of
-      Webdavex.Config.new(base_url: "http://webdav.host") |> Webdavex.Client.get()
+      Webdavex.Config.new(base_url: "http://webdav.host") |> Webdavex.Client.get("image.png")
   """
 
   alias Webdavex.Config
