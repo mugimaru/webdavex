@@ -52,8 +52,10 @@ defmodule Webdavex.Config do
   @type t :: %__MODULE__{base_url: String.t(), hackney_options: Keyword.t(), headers: Keyword.t()}
   defstruct [:base_url, :hackney_options, :headers]
 
-  @spec new(map | Keyword.t()) :: __MODULE__.t()
+  @spec new(map | Keyword.t() | __MODULE__.t()) :: __MODULE__.t()
   @doc "Converts enumerable into `Webdavex.Config` struct."
+  def new(%__MODULE__{} = config), do: config
+
   def new(opts) do
     base_url = Access.get(opts, :base_url, nil) || raise(ArgumentError, "[#{__MODULE__}] `base_url` is missing.")
 

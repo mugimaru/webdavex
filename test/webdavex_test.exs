@@ -4,16 +4,17 @@ defmodule WebdavexTest do
 
   alias Plug.Conn
 
-  @bypass_port 8787
   @image_path Path.join(["test", "support", "fixtures", "img.png"]) |> Path.absname()
   @image_content File.read!(@image_path)
 
-  setup do
-    {:ok, bypass: Bypass.open(port: @bypass_port)}
+  defmodule Klient do
+    use Webdavex.Agent, base_url: "http://localhost"
   end
 
-  defmodule Klient do
-    use Webdavex, base_url: "http://localhost:8787/dav", headers: [{"foo", "bar"}]
+  setup do
+    bypass = Bypass.open()
+    {:ok, _pid} = Klient.start_link(base_url: "http://localhost:#{bypass.port}/dav", headers: [{"foo", "bar"}])
+    {:ok, bypass: bypass}
   end
 
   defmodule RequestsTracer do
@@ -49,9 +50,9 @@ defmodule WebdavexTest do
     assert {key, value} == header
   end
 
-  test "config/0 returns configuration struct" do
+  test "config/0 returns configuration struct", %{bypass: bypass} do
     assert Klient.config() == %Webdavex.Config{
-             base_url: URI.parse("http://localhost:#{@bypass_port}/dav"),
+             base_url: URI.parse("http://localhost:#{bypass.port}/dav"),
              hackney_options: [],
              headers: [{"foo", "bar"}]
            }
@@ -120,7 +121,7 @@ defmodule WebdavexTest do
         assert conn.method == "COPY"
         assert conn.request_path == "/dav/images/img.png"
         assert_header(conn.req_headers, "overwrite", "T")
-        assert_header(conn.req_headers, "destination", "http://localhost:#{bypass.port}/dav/images/img_copy.png")
+        assert_header(conn.req_headers, "destination", "#{Klient.config().base_url}/images/img_copy.png")
         assert_adds_default_header(conn)
 
         Conn.resp(conn, 204, "")
@@ -134,7 +135,7 @@ defmodule WebdavexTest do
         assert conn.method == "COPY"
         assert conn.request_path == "/dav/images/img.png"
         assert_header(conn.req_headers, "overwrite", "F")
-        assert_header(conn.req_headers, "destination", "http://localhost:#{bypass.port}/dav/images/img_copy.png")
+        assert_header(conn.req_headers, "destination", "#{Klient.config().base_url}/images/img_copy.png")
         assert_adds_default_header(conn)
 
         Conn.resp(conn, 204, "")

@@ -20,20 +20,7 @@ defmodule Webdavex do
   and override `config/0` to fetch data from its state.
 
       defmodule MyClient do
-        use Agent
-        use Webdavex, base_url: "https://webdav.com"
-
-        def start_link do
-          Agent.start_link(fn -> @config end, name: __MODULE__)
-        end
-
-        def update_config(map) do
-          Agent.update(__MODULE__, Webdavex.Config.new(map))
-        end
-
-        def config do
-          Agent.get(__MODULE__, fn config -> config end)
-        end
+        use Webdavex.Agent, base_url: "https://webdav.com"
       end
 
       {:ok, _pid} = MyClient.start_link()
