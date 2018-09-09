@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - `Webdavex.Client.head/2` method
+- `Webdavex.Client.get_stream/2` method
 
 ### Changed
 - improve tests with dynamic `Bypass` port

@@ -130,6 +130,26 @@ defmodule WebdavexTest do
     end
   end
 
+  describe "get_stream/1" do
+    test "returns file resource", %{bypass: bypass} do
+      Bypass.expect_once(bypass, "GET", "/dav/images/img.png", fn conn ->
+        assert_adds_default_header(conn)
+        Conn.send_file(conn, 200, @image_path)
+      end)
+
+      tempfile = Path.join("test", :crypto.strong_rand_bytes(12) |> :base64.encode()) |> Path.absname()
+      on_exit(fn -> File.rm(tempfile) end)
+
+      assert {:ok, stream} = Klient.get_stream("images/img.png")
+
+      stream
+      |> Stream.into(File.stream!(tempfile, [:write]))
+      |> Stream.run()
+
+      assert @image_content == File.read!(tempfile)
+    end
+  end
+
   describe "copy/2" do
     test "sends COPY request with default overwrite option value (true)", %{bypass: bypass} do
       Bypass.expect_once(bypass, fn conn ->

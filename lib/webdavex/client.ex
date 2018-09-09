@@ -65,6 +65,30 @@ defmodule Webdavex.Client do
     end
   end
 
+  @spec get_stream(Config.t(), path :: String.t()) :: {:ok, Enumerable.t()} | {:error, atom}
+  @doc """
+  Same as `get/2`, but returns content reader in form of `Stream.resource/3`.
+  See `Webdavex.Helpers.Hackney.stream_body/1` and `:hackney.stream_body/1`.
+
+  ### Examples
+  Stream content into a file
+
+      with {:ok, stream} <- MyClient.get_stream("foo.png") do
+        stream
+        |> Stream.into(File.stream!("/local/path/foo.png", [:write]))
+        |> Stream.run
+      end
+  """
+  def get_stream(%Config{} = config, path) do
+    case request(:get, path, [], "", config) do
+      {:ok, 200, _headers, ref} ->
+        {:ok, Webdavex.Helpers.Hackney.stream_body(ref)}
+
+      error ->
+        wrap_error(error)
+    end
+  end
+
   @spec put(Config.t(), path :: String.t(), {:file, String.t()} | {:binary, binary}) ::
           {:ok, :created} | {:ok, :updated} | {:error, atom}
   @doc """

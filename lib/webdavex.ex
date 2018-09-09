@@ -46,6 +46,9 @@ defmodule Webdavex do
       @spec get(path :: String.t()) :: {:ok, binary} | {:error, atom}
       def get(path), do: Client.get(config(), path)
 
+      @spec get_stream(path :: String.t()) :: {:ok, Enumerable.t()} | {:error, atom}
+      def get_stream(path), do: Client.get_stream(config(), path)
+
       @spec put(path :: String.t(), {:file, file_path :: String.t()}) :: {:ok, :created | :updated} | {:error, atom}
       @spec put(path :: String.t(), {:binary, content :: binary}) :: {:ok, :created | :updated} | {:error, atom}
       def put(path, content), do: Client.put(config(), path, content)
