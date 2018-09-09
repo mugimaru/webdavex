@@ -6,7 +6,6 @@ Webdavex aimed to work with [nginx implementation of WebDAV](https://nginx.org/e
 which means that it does not support `PROPFIND`, `PROPPATCH`, `LOCK` and `UNLOCK` methods.
 
 **Work in progress, TODO**:
-* write tests
 * publish hex package
 * publish docs
 
@@ -21,6 +20,16 @@ def deps do
     {:webdavex, "~> 0.1.0"}
   ]
 end
+```
+
+## Quick start
+
+```elixir
+defmodule MyApp.WebdavClient do
+  use Webdavex, base_url: "https://webdav.host:888"
+end
+
+MyApp.WebdavClient.put("image.png", {:file, Path.absname("files/image.png")})
 ```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)

@@ -169,7 +169,7 @@ defmodule Webdavex.Client do
     end
   end
 
-  @spec mkcol_recursive(Config.t(), path :: String.t()) :: {:ok, 200} | {:error, atom}
+  @spec mkcol_recursive(Config.t(), path :: String.t()) :: {:ok, String.t()} | {:error, atom}
   @doc """
   Creates nested folders for given path or file.
 
@@ -182,19 +182,20 @@ defmodule Webdavex.Client do
   "foo", "foo/bar" and "foo/bar/baz" folders will be created.
 
   Create structure for a folder.
-      MyClient.mkcol_recursive("foo/bar")
+      MyClient.mkcol_recursive("foo/bar/")
       {:ok, :created}
+  Note that trailing slash is required for directory paths.
   """
   def mkcol_recursive(%Config{} = config, path) do
     path
     |> Path.dirname()
     |> String.split("/")
-    |> Enum.reduce_while("", fn folder, prefix ->
+    |> Enum.reduce_while({:ok, ""}, fn folder, {:ok, prefix} ->
       new_path = prefix <> "/" <> folder
 
       case mkcol(config, new_path) do
         {:ok, _} ->
-          {:cont, new_path}
+          {:cont, {:ok, new_path}}
 
         error ->
           {:halt, error}
@@ -225,7 +226,7 @@ defmodule Webdavex.Client do
   defp request(meth, url, headers, body, config) do
     started_at = now()
     full_url = full_url(config.base_url, url)
-    headers = Keyword.merge(config.headers, headers)
+    headers = config.headers ++ headers
 
     case :hackney.request(meth, full_url, headers, body, config.hackney_options) do
       {:ok, status, _, _} = result ->
@@ -260,6 +261,6 @@ defmodule Webdavex.Client do
 
   defp destination_header(base_url, url), do: {"Destination", full_url(base_url, url)}
 
-  defp wrap_error({:ok, status, _headers, _ref}), do: {:error, :"http_#{status}"}
+  defp wrap_error({:ok, status, _headers, _ref}), do: {:error, String.to_atom("http_#{status}")}
   defp wrap_error({:error, reason}), do: {:error, reason}
 end
