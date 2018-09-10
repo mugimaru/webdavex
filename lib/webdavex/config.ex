@@ -1,5 +1,5 @@
 defmodule Webdavex.Config do
-  @hackney_options_whitelist [:pool]
+  @hackney_options_whitelist [:pool, :ssl_options, :connect_options, :proxy, :insecure, :connect_timeout, :recv_timeout]
   @default_headers []
   @default_hackney_options []
 
