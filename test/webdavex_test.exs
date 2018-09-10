@@ -137,7 +137,7 @@ defmodule WebdavexTest do
         Conn.send_file(conn, 200, @image_path)
       end)
 
-      tempfile = Path.join("test", :crypto.strong_rand_bytes(12) |> :base64.encode()) |> Path.absname()
+      tempfile = Path.join("test", :crypto.strong_rand_bytes(12) |> Base.url_encode64()) |> Path.absname()
       on_exit(fn -> File.rm(tempfile) end)
 
       assert {:ok, stream} = Klient.get_stream("images/img.png")
