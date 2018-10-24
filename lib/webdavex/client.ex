@@ -92,7 +92,7 @@ defmodule Webdavex.Client do
   @spec put(Config.t(), path :: String.t(), {:file, String.t()} | {:binary, binary}) ::
           {:ok, :created} | {:ok, :updated} | {:error, atom}
   @doc """
-  Uploads local file or binary content to webdav server.
+  Uploads local file, `Stream` or binary content to webdav server.
 
   Note that webdav specification only allows to create files in already existing folders
   which means thah you must call `mkcol/2` or `mkcol_recursive/2` manually.
@@ -107,6 +107,11 @@ defmodule Webdavex.Client do
 
       MyClient.put("file.ext", {:binary, <<42, 42, 42>>})
       {:ok, :created}
+
+  Chunked upload from a `Stream`
+
+    MyClient.put("file.ext", {:stream, File.stream("/path/to/file.ext")})
+    {:ok, :created}
   """
   def put(%Config{} = config, path, content) do
     with {:ok, ref} <- do_put(config, path, content) do
@@ -263,14 +268,25 @@ defmodule Webdavex.Client do
     end
   end
 
-  defp do_put(config, path, {:binary, data}) do
+  defp do_put(config, path, {mode, data}) when mode in [:stream, :binary] do
     with {:ok, ref} <- request(:put, path, [], :stream, config),
-         :ok <- :hackney.send_body(ref, data) do
+         :ok <- do_send_body(mode, ref, data),
+         :ok <- :hackney.finish_send_body(ref) do
       {:ok, ref}
     else
       error ->
         wrap_error(error)
     end
+  end
+
+  defp do_send_body(:binary, ref, data), do: :hackney.send_body(ref, data)
+  defp do_send_body(:stream, ref, stream) do
+    Enum.reduce_while(stream, :ok, fn part, :ok ->
+      case :hackney.send_body(ref, part) do
+        :ok -> {:cont, :ok}
+        any -> {:halt, any}
+      end
+    end)
   end
 
   defp request(meth, url, headers, body, config) do

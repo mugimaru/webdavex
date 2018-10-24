@@ -101,6 +101,22 @@ defmodule WebdavexTest do
 
       assert {:ok, :updated} == Klient.put("images/img.png", {:binary, @image_content})
     end
+
+    test "sends PUT request from stream", %{bypass: bypass} do
+      stream = ["foo", "bar", "baz"] |> Enum.map(fn v -> v <> "\n" end)
+      data = Enum.join(stream)
+
+      Bypass.expect_once(bypass, "PUT", "/dav/images/img.png", fn conn ->
+        assert_adds_default_header(conn)
+
+        {:ok, body, conn} = Conn.read_body(conn)
+        assert data == body
+
+        Conn.resp(conn, 204, "")
+      end)
+
+      assert {:ok, :updated} == Klient.put("images/img.png", {:stream, stream})
+    end
   end
 
   describe "head/1" do
