@@ -124,7 +124,7 @@ defmodule Webdavex.Client do
           :ok = :hackney.skip_body(ref)
           {:ok, :created}
 
-        {:ok, status, headers, ref} = error ->
+        {:ok, _status, _headers, ref} = error ->
           :ok = :hackney.skip_body(ref)
           wrap_error(error)
 
