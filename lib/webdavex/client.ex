@@ -116,11 +116,21 @@ defmodule Webdavex.Client do
   def put(%Config{} = config, path, content) do
     with {:ok, ref} <- do_put(config, path, content) do
       case :hackney.start_response(ref) do
-        {:ok, 204, _, _} ->
+        {:ok, 204, _headers, ref} ->
+          :ok = :hackney.skip_body(ref)
           {:ok, :updated}
 
-        {:ok, 201, _, _} ->
+        {:ok, 201, _headers, ref} ->
+          :ok = :hackney.skip_body(ref)
           {:ok, :created}
+
+        {:ok, status, headers, ref} = error ->
+          :ok = :hackney.skip_body(ref)
+          wrap_error(error)
+
+        {:ok, ref} = error ->
+          :hackney.skip_body(ref)
+          wrap_error(error)
 
         error ->
           wrap_error(error)

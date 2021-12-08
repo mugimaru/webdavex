@@ -72,6 +72,18 @@ defmodule WebdavexTest do
       assert {:ok, :created} == Klient.put("images/img.png", {:file, @image_path})
     end
 
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, "PUT", "/dav/images/img.png", fn conn ->
+        Conn.resp(conn, Enum.random([201, 204, 500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.put("images/img.png", {:file, @image_path})
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
+    end
+
     test "returns an error if file does not exist" do
       assert {:error, :enoent} == Klient.put("images/img.png", {:file, Path.absname("foobar.png")})
     end
