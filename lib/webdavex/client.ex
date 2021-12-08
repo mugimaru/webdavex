@@ -280,6 +280,7 @@ defmodule Webdavex.Client do
   end
 
   defp do_send_body(:binary, ref, data), do: :hackney.send_body(ref, data)
+
   defp do_send_body(:stream, ref, stream) do
     Enum.reduce_while(stream, :ok, fn part, :ok ->
       case :hackney.send_body(ref, part) do
