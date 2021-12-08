@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.3.2] - 2021-12-08
+
+- Fix compiler warnings.
+
 ## [0.3.1] - 2021-12-08
 
 - Fix `Webdavex.Client.put/3` connections leaking.
