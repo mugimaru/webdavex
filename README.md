@@ -14,7 +14,7 @@ which means it does not support `PROPFIND`, `PROPPATCH`, `LOCK` and `UNLOCK` met
 ```elixir
 def deps do
   [
-    {:webdavex, "~> 0.3.2"}
+    {:webdavex, "~> 0.3.3"}
   ]
 end
 ```

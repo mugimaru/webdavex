@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.3.3] - 2022-01-23
+
+- Fix typespecs.
+
 ## [0.3.2] - 2021-12-08
 
 - Fix compiler warnings.
