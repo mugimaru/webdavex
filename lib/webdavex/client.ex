@@ -89,7 +89,7 @@ defmodule Webdavex.Client do
     end
   end
 
-  @spec put(Config.t(), path :: String.t(), {:file, String.t()} | {:binary, binary}) ::
+  @spec put(Config.t(), path :: String.t(), {:file, String.t()} | {:binary, binary} | {:stream, Enumerable.t()}) ::
           {:ok, :created} | {:ok, :updated} | {:error, atom}
   @doc """
   Uploads local file, `Stream` or binary content to webdav server.
@@ -126,10 +126,6 @@ defmodule Webdavex.Client do
 
         {:ok, _status, _headers, ref} = error ->
           :ok = :hackney.skip_body(ref)
-          wrap_error(error)
-
-        {:ok, ref} = error ->
-          :hackney.skip_body(ref)
           wrap_error(error)
 
         error ->

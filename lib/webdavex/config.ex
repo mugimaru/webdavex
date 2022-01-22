@@ -49,7 +49,7 @@ defmodule Webdavex.Config do
       }
   """
 
-  @type t :: %__MODULE__{base_url: String.t(), hackney_options: Keyword.t(), headers: Keyword.t()}
+  @type t :: %__MODULE__{base_url: URI.t(), hackney_options: Keyword.t(), headers: Keyword.t()}
   defstruct [:base_url, :hackney_options, :headers]
 
   @spec new(map | Keyword.t() | __MODULE__.t()) :: __MODULE__.t()

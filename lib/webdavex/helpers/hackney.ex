@@ -1,7 +1,7 @@
 defmodule Webdavex.Helpers.Hackney do
   @moduledoc "`:hackney` helpers."
 
-  @spec stream_body(pid) :: Stream.t()
+  @spec stream_body(pid) :: Enumerable.t()
   @doc """
   Creates a `Stream` reader for :hackney response body.
 
