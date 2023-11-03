@@ -144,6 +144,18 @@ defmodule WebdavexTest do
       assert {:ok, headers} = Klient.head("images/img.png")
       assert {"Foo-Bar", "baz"} == Enum.find(headers, fn {k, _v} -> k == "Foo-Bar" end)
     end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, "HEAD", "/dav/images/img.png", fn conn ->
+        Conn.resp(conn, Enum.random([201, 204, 500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.head("images/img.png")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
+    end
   end
 
   describe "get/1" do
@@ -155,6 +167,18 @@ defmodule WebdavexTest do
 
       assert {:ok, content} = Klient.get("images/img.png")
       assert content == @image_content
+    end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, "GET", "/dav/images/img.png", fn conn ->
+        Conn.resp(conn, Enum.random([201, 204, 500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.get("images/img.png")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
     end
   end
 
@@ -175,6 +199,18 @@ defmodule WebdavexTest do
       |> Stream.run()
 
       assert @image_content == File.read!(tempfile)
+    end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, "GET", "/dav/images/img.png", fn conn ->
+        Conn.resp(conn, Enum.random([204, 500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.get_stream("images/img.png")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
     end
   end
 
@@ -206,6 +242,18 @@ defmodule WebdavexTest do
 
       assert {:ok, :copied} == Klient.copy("images/img.png", "images/img_copy.png", false)
     end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, fn conn ->
+        Conn.resp(conn, Enum.random([500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.copy("images/img.png", "images/img_copy.png")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
+    end
   end
 
   describe "move/2" do
@@ -236,6 +284,18 @@ defmodule WebdavexTest do
 
       assert {:ok, :moved} == Klient.move("images/img.png", "images/img_copy.png", false)
     end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, fn conn ->
+        Conn.resp(conn, Enum.random([500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.move("images/img.png", "images/img_copy.png")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
+    end
   end
 
   describe "delete/1" do
@@ -246,6 +306,18 @@ defmodule WebdavexTest do
       end)
 
       assert {:ok, :deleted} = Klient.delete("images/img.png")
+    end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, "DELETE", "/dav/images/img.png", fn conn ->
+        Conn.resp(conn, Enum.random([204, 500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.delete("images/img.png")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
     end
   end
 
@@ -298,6 +370,18 @@ defmodule WebdavexTest do
       assert {:ok, "/images/foo/bar"} == Klient.mkcol_recursive("images/foo/bar/")
       assert RequestsTracer.requests(tracer_pid) == []
     end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, fn conn ->
+        Conn.resp(conn, Enum.random([500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.mkcol_recursive("images/foo/bar/")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
+    end
   end
 
   describe "mkcol/1" do
@@ -311,6 +395,18 @@ defmodule WebdavexTest do
       end)
 
       assert {:ok, :created} == Klient.mkcol("images")
+    end
+
+    test "does not leak connections", %{bypass: bypass} do
+      Bypass.expect(bypass, fn conn ->
+        Conn.resp(conn, Enum.random([500, 502, 404]), "")
+      end)
+
+      for _ <- 1..30 do
+        Klient.mkcol("images")
+      end
+
+      assert :hackney_pool.get_stats(:default)[:in_use_count] == 0
     end
   end
 end

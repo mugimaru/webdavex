@@ -56,10 +56,17 @@ defmodule Webdavex.Client do
       {:ok, <<binary content>>}
   """
   def get(%Config{} = config, path) do
-    with {:ok, 200, _, ref} <- request(:get, path, [], "", config),
-         {:ok, body} <- :hackney.body(ref) do
-      {:ok, body}
-    else
+    case request(:get, path, [], "", config) do
+      {:ok, 200, _, ref} ->
+        case :hackney.body(ref) do
+          {:ok, body} -> {:ok, body}
+          error -> wrap_error(error)
+        end
+
+      {:ok, _status, _headers, ref} = error ->
+        :ok = :hackney.skip_body(ref)
+        wrap_error(error)
+
       error ->
         wrap_error(error)
     end
@@ -83,6 +90,10 @@ defmodule Webdavex.Client do
     case request(:get, path, [], "", config) do
       {:ok, 200, _headers, ref} ->
         {:ok, Webdavex.Helpers.Hackney.stream_body(ref)}
+
+      {:ok, _status, _headers, ref} = error ->
+        :ok = :hackney.skip_body(ref)
+        wrap_error(error)
 
       error ->
         wrap_error(error)
@@ -159,6 +170,10 @@ defmodule Webdavex.Client do
       {:ok, 204, _, _ref} ->
         {:ok, :moved}
 
+      {:ok, _status, _headers, ref} = error ->
+        :ok = :hackney.skip_body(ref)
+        wrap_error(error)
+
       error ->
         wrap_error(error)
     end
@@ -182,6 +197,10 @@ defmodule Webdavex.Client do
       {:ok, 204, _, _ref} ->
         {:ok, :copied}
 
+      {:ok, _status, _headers, ref} = error ->
+        :ok = :hackney.skip_body(ref)
+        wrap_error(error)
+
       error ->
         wrap_error(error)
     end
@@ -199,8 +218,13 @@ defmodule Webdavex.Client do
   """
   def delete(%Config{} = config, path) do
     case request(:delete, path, [], "", config) do
-      {:ok, 204, _, _} ->
+      {:ok, 204, _headers, ref} ->
+        :ok = :hackney.skip_body(ref)
         {:ok, :deleted}
+
+      {:ok, _status, _headers, ref} = error ->
+        :ok = :hackney.skip_body(ref)
+        wrap_error(error)
 
       error ->
         wrap_error(error)
@@ -224,6 +248,10 @@ defmodule Webdavex.Client do
     case request(:mkcol, path, [], "", config) do
       {:ok, 201, _, _} ->
         {:ok, :created}
+
+      {:ok, _status, _headers, ref} = error ->
+        :ok = :hackney.skip_body(ref)
+        wrap_error(error)
 
       error ->
         wrap_error(error)
